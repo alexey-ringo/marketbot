@@ -43,5 +43,11 @@ return [
             'tolerance' => env('STRIPE_WEBHOOK_TOLERANCE', 300),
         ],
     ],
+        
+    'schema_io' => [
+        'id' => env('SCHEMA_IO_ID'),
+        'secret' => env('SCHEMA_IO_SECRET'),
+        'public' => env('SCHEMA_IO_PUBLIC'),
+    ],
 
 ];
