@@ -49,5 +49,10 @@ return [
         'secret' => env('SCHEMA_IO_SECRET'),
         'public' => env('SCHEMA_IO_PUBLIC'),
     ],
-
+    
+    'telegram' => [
+        'username' => env('TELEGRAM_BOT_USERNAME'),
+        'token' => env('TELEGRAM_BOT_TOKEN'),
+        'webhook_url' => env('TELEGRAM_WEBHOOK_URL'),
+    ],
 ];
