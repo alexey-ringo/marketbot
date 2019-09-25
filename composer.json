@@ -13,7 +13,8 @@
         "irazasyed/telegram-bot-sdk": "3.0",
         "laravel/framework": "5.8.*",
         "laravel/tinker": "^1.0",
-        "schemaio/schema-php-client": "dev-master"
+        "schemaio/schema-php-client": "dev-master",
+        "sentry/sentry-laravel": "1.2.1"
     },
     "require-dev": {
         "beyondcode/laravel-dump-server": "^1.0",

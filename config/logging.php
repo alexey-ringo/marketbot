@@ -37,6 +37,8 @@ return [
         'stack' => [
             'driver' => 'stack',
             'channels' => ['daily'],
+             // Add the Sentry log channel to the stack
+             //'channels' => ['daily', 'sentry'],
             'ignore_exceptions' => false,
         ],
 
@@ -89,6 +91,10 @@ return [
         'errorlog' => [
             'driver' => 'errorlog',
             'level' => 'debug',
+        ],
+        
+        'sentry' => [
+            'driver' => 'sentry',
         ],
     ],
 
