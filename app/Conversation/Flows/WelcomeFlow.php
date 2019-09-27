@@ -19,5 +19,8 @@ class WelcomeFlow extends AbstractFlow
             'chat_id' => $this->user->chat_id,
             'text' => 'Добро пожаловать в наш магазин "' . config('app.name') . '"!',
         ]);
+        
+        $state = 'first';
+        $this->jump(CategoryFlow::class, $state);
     }
 }
