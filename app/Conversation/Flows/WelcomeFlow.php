@@ -15,6 +15,11 @@ class WelcomeFlow extends AbstractFlow
     
     protected function first()
     {
+         \Log::debug('WelcomeFlow.first', [
+                'states' => $this->states,
+                'microtime' => microtime(true),
+            ]);
+            
         $this->telegram()->sendMessage([
             'chat_id' => $this->user->chat_id,
             'text' => 'Добро пожаловать в наш магазин "' . config('app.name') . '"!',

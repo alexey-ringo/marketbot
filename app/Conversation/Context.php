@@ -11,17 +11,19 @@ use Log;
 
 class Context
 {
-    public static function save(User $user, AbstractFlow $flow, string $state)
+    public static function save(User $user, AbstractFlow $flow, string $state, array $options = [])
     {
         Log::debug('Context.save', [
             'user' => $user->toArray(),
             'flow' => get_class($flow),
             'state' => $state,
+            'options' => $options,
         ]);
         
         Cache::forever(self::key($user), [
             'flow' => get_class($flow),
             'state' => $state,
+            'options' => $options,
         ]);
     }
     
@@ -33,6 +35,25 @@ class Context
     {
         return Cache::get(self::key($user), []);
     }
+    
+    public static function update(User $user, array $options = [])
+    {
+        $currentContext = self::get($user);
+        
+        Log::debug('Context.update', [
+            'user' => $user->toArray(),
+            'options' => $options,
+            'current_context' => $currentContext,
+        ]);
+        
+        Cache::forever(self::key($user), [
+            'flow' => $currentContext['flow'],
+            'state' => $currentContext['state'],
+            'options' => $options,
+        ]);
+    }
+    
+    
     
     private static function key(User $user)
     {

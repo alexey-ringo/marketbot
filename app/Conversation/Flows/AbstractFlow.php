@@ -11,6 +11,8 @@ use Telegram;
 use Telegram\Bot\Api;
 use Event;
 use App\Events\Conversation\onFlowRunned;
+use App\Events\Conversation\onOptionChanged;
+
 use Log;
 
 abstract class AbstractFlow
@@ -30,14 +32,10 @@ abstract class AbstractFlow
      */
     protected $triggers = [];
     
-    /**
-     * @var array 
-     */
-    protected $states = [];
+    protected $states = ['first'];
     
-    /**
-     * @var array 
-     */
+    protected $options = [];
+    
     protected $context = [];
     
     
@@ -62,19 +60,45 @@ abstract class AbstractFlow
     }
     
     /**
-     * @param string|nill $state
+     * @param string|null $state
+     * @param array $options
+     * 
      * @return bool
      */
-    public function run($state = null): bool
+    public function run($state = null, array $options = []): bool
     {
-        //statuc::class - отдаст название класса ...Flow, которое запускается в текущем контексте
-        //если self::class - то AbstractFlow в любом случае
+    //    statuc::class - отдаст название класса ...Flow, которое запускается в текущем контексте
+    //    если self::class - то AbstractFlow в любом случае
+    //    Log::debug(static::class . '.run', [
+    //        'user' => $this->user->toArray(),
+    //        'message' => $this->message->toArray(),
+    //        'state' => $state,
+    //        'microtime' => microtime(true),
+    //    ]);
+        //-------------в контексте указан другой flow
+        if(isset($this->context['flow']) && $this->context['flow'] !== get_class($this)) {
+            return false;
+        }
+        
+        
+        //Перезаписываем значения из контекста - первоначальная инициализация options
+        if(count($options > 0)) {
+            $this->options = array_merge($this->options, $options);
+        }
+        else {
+            $this->options = array_merge($this->context['options'] ?? $this->options, $this->options);
+                //$this->options = $this->context['options'] ?? $this->options;
+        }
+        
         Log::debug(static::class . '.run', [
             'user' => $this->user->toArray(),
             'message' => $this->message->toArray(),
             'state' => $state,
+            'context' => $this->context,
+            'options' => $this->options,
             'microtime' => microtime(true),
         ]);
+        
         
         //Если в параметре уже было передано значение $state
         if(!is_null($state)) {
@@ -86,7 +110,7 @@ abstract class AbstractFlow
                 'microtime' => microtime(true),
             ]);
             
-            Event::dispatch(new onFlowRunned($this->user, $this, $state));
+            Event::dispatch(new onFlowRunned($this->user, $this, $state, $this->options));
             $this->$state();
             
             return true;
@@ -103,7 +127,7 @@ abstract class AbstractFlow
                 'microtime' => microtime(true),
             ]);
             
-            Event::dispatch(new onFlowRunned($this->user, $this, $state));
+            Event::dispatch(new onFlowRunned($this->user, $this, $state, $this->options));
             $this->$state();
             
             return true;
@@ -120,7 +144,7 @@ abstract class AbstractFlow
                 'microtime' => microtime(true),
             ]);
             
-            Event::dispatch(new onFlowRunned($this->user, $this, $state));
+            Event::dispatch(new onFlowRunned($this->user, $this, $state, $this->options));
             $this->$state();
             
             return true;
@@ -172,11 +196,19 @@ abstract class AbstractFlow
             ]);
             $currentState = $states[$currentStateIndex];
             
+            Log::debug(static::class . '.run.findByContext()-$currentState', [
+                'currentState' => $currentState,
+                'microtime' => microtime(true),
+            ]);
+            
             //Проверка на наличие следующего state
             if(isset($states[$currentStateIndex + 1])) {
                 $nextState = $states[$currentStateIndex + 1];
-                //Если есть - то запускаем и его
-                $flow->run($nextState);
+                
+                 Log::debug(static::class . '.run.findByContext()-$nextState', [
+                    'nextState' => $nextState,
+                    'microtime' => microtime(true),
+                ]);
                 
                 return $nextState;
             }
@@ -208,6 +240,11 @@ abstract class AbstractFlow
     {
         //Получаем созданное в getFlow() новое Flow и запускаем его метод (имя метода в $state)
         $this->getFlow($flow)->run($state);
+    }
+    
+    protected function saveOption(string $key, $value) 
+    {
+        Event::dispatch(new onOptionChanged($this->user, $key, $value));
     }
     
     private function getFlow(string $flow): AbstractFlow

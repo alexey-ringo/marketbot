@@ -14,7 +14,7 @@ class Conversation
 {
     protected $flows = [
         WelcomeFlow::class,
-        //CategoryFlow::class,
+        CategoryFlow::class,
     ];
     /*
     private $context;

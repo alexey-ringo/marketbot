@@ -2,7 +2,7 @@
 
 namespace App\Events\Conversation;
 
-use App\Conversation\Flows\AbstractFlow;
+
 use App\Entities\User;
 
 //---------------------------------
@@ -23,26 +23,24 @@ use Illuminate\Foundation\Events\Dispatchable;
 //use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 //-----------------------------------------------
 
-class onFlowRunned
+class onOptionChanged
 {
     use Dispatchable, /*InteractsWithSockets, */SerializesModels;
     
     protected $user;
-    protected $flow;
-    protected $state;
-    protected $options;
+    protected $key;
+    protected $value;
 
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct(User $user, AbstractFlow $flow, string $state, array $options = [])
+    public function __construct(User $user, string $key, $value)
     {
         $this->user = $user;
-        $this->flow = $flow;
-        $this->state = $state;
-        $this->options = $options;
+        $this->key = $key;
+        $this->value = $value;
     }
     
     public function getUser(): User
@@ -50,21 +48,15 @@ class onFlowRunned
         return $this->user;
     }
     
-    public function getFlow(): AbstractFlow
+    public function getKey(): string
     {
-        return $this->flow;
+        return $this->key;
     }
     
-    public function getState(): string
+    public function getValue()
     {
-        return $this->state;
+        return $this->value;
     }
-    
-    public function getOptions(): array
-    {
-        return $this->options;
-    }
-    
 
     /**
      * Get the channels the event should broadcast on.

@@ -21,6 +21,9 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\Conversation\onFlowRunned' => [
             'App\Listeners\Conversation\SaveRunnedFlowToContext'
         ],
+        'App\Events\Conversation\onOptionChanged' => [
+            'App\Listeners\Conversation\UpdateOptionInContext'
+        ],
     ];
 
     /**

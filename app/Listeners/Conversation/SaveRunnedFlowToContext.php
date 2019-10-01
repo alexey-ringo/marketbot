@@ -32,14 +32,16 @@ class SaveRunnedFlowToContext
         $user = $event->getUser(); 
         $flow = $event->getFlow(); 
         $state = $event->getState();
+        $options = $event->getOptions();
         
-        //Log::debug('SaveRunnedFlowToContext.handle', [
-        //    'user' => $user->toArray(),
-        //    'flow' => get_class($flow),
-        //    'state' => $state,  
-        //    'microtime' => microtime(true),
-        //]);
+        Log::debug('SaveRunnedFlowToContext.handle', [
+            'user' => $user->toArray(),
+            'flow' => get_class($flow),
+            'state' => $state,
+            'options' => $options,
+            'microtime' => microtime(true),
+        ]);
         
-        Context::save($user, $flow, $state);
+        Context::save($user, $flow, $state, $options);
     }
 }
