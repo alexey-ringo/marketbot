@@ -73,7 +73,7 @@ class CategoryFlow extends AbstractFlow
         $this->saveOption('parent_id', $id);  
         
         $state = 'first';
-        $this->run($first, ['parent_id' => $id]);
+        $this->run($state, ['parent_id' => $id]);
     }
     
     /**
