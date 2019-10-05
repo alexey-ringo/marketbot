@@ -54,6 +54,10 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $exception)
     {
+        //Always response 'OK' to webhooks (webhook - prefix into RouteServiceProvider)
+        if(starts_with($request->getRequestUri(), ['/webhook'])) {
+            return response('ok');
+        }
         return parent::render($request, $exception);
     }
 }

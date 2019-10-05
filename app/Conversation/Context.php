@@ -3,60 +3,67 @@
 namespace App\Conversation;
 
 use App\Conversation\Flows\AbstractFlow;
-use App\Entities\User;
-use Cache;
-//use Redis;
-//use Illuminate\Support\Facades\Redis;
-use Log;
 
 class Context
 {
-    public static function save(User $user, AbstractFlow $flow, string $state, array $options = [])
+    protected $flow;
+    protected $state;
+    protected $options;
+    
+    public function __construct(AbstractFlow $flow = null, string $state = null, array $options = [])
     {
-        Log::debug('Context.save', [
-            'user' => $user->toArray(),
-            'flow' => get_class($flow),
-            'state' => $state,
-            'options' => $options,
-        ]);
-        
-        Cache::forever(self::key($user), [
-            'flow' => get_class($flow),
-            'state' => $state,
-            'options' => $options,
-        ]);
+        $this->flow = !is_null($flow) ?get_class($flow) : null;
+        $this->state = $state;
+        $this->options = $options;
+    }
+    
+    public function hasFlow(): bool
+    {
+        return !is_null($this->flow);
     }
     
     /**
-     * @paran User $user
-     * @return array
+     * @return AbstractFlow|null
      */
-    public static function get(User $user): array
+    public function getFlow(): ?AbstractFlow
     {
-        return Cache::get(self::key($user), []);
+        return $this->hasFlow() ? app($this->flow) : null;
     }
     
-    public static function update(User $user, array $options = [])
+    public function setFlow(AbstractFlow $flow)
     {
-        $currentContext = self::get($user);
-        
-        Log::debug('Context.update', [
-            'user' => $user->toArray(),
-            'options' => $options,
-            'current_context' => $currentContext,
-        ]);
-        
-        Cache::forever(self::key($user), [
-            'flow' => $currentContext['flow'],
-            'state' => $currentContext['state'],
-            'options' => $options,
-        ]);
+        $this->flow = get_class($flow); 
     }
     
-    
-    
-    private static function key(User $user)
+    public function getState()
     {
-        return 'context_' . $user->id;
+        return $this->state;
+    }
+    
+    public function setState(string $state)
+    {
+        $this->state = $state;
+    }
+    
+    public function getOptions(): array
+    {
+        return $this->options;
+    }
+    
+    public function setOptions(array $options)
+    {
+        $this->options = $options;
+    }
+    
+    public function setOption(string $key, string $value)
+    {
+        $this->options[$key] = $value;
+    }
+    
+    public function removeOption(string $key)
+    {
+        if(array_key_exists($key, $this->options)) {
+            unset($this->options[$key]);
+        }
     }
 }

@@ -7,33 +7,44 @@ use App\Conversation\Flows\CategoryFlow;
 use App\Conversation\Context;
 use App\Entities\User;
 use App\Entities\Message;
+use App\Traits\Loggable;
+use App\Conversation\Traits\InteractWithContext;
 
-use Log;
 
 class Conversation
 {
-    protected $flows = [
-        WelcomeFlow::class,
-        CategoryFlow::class,
-    ];
-    /*
-    private $context;
+    use Loggable, InteractWithContext;
     
-    public function __construct(Context $context)
+    protected $flows;
+    
+    public function __construct(array $flows = [])
     {
-        $this->context = $context;
+        $this->flows = $flows;
     }
-    */
+    
     public function start(User $user, Message $message)
     {
-        Log::debug('Conversation.start', [
-                'user' => $user->toArray(),
-                'message' => $message->toArray(),
-            ]);
+        $this->log('start', [
+            'user' => $user->toArray(),
+            'message' => $message->toArray(),
+        ]);
         
-        //$context = $this->context->get($user);
-        $context = Context::get($user);
+        //В трейте InteractWithContext
+        $this->user = $user;
+        $context = $this->context();
+        
+        //Если в контексте есть flow - директивный запуск flow
+        if($context->hasFlow()) {
+            $flow = $context->getFlow();
+            $flow->setUser($this->user);
+            $flow->setMessage($message);
+//            $this->log('flow-is-exists-in-context', [$flow]);
+            $flow->handle();
             
+            return;
+        }
+        
+       
         foreach($this->flows as $flow) {
             /**
              * @var AbstractFlow $flow
@@ -42,9 +53,10 @@ class Conversation
             
             $flow->setUser($user);
             $flow->setMessage($message);
-            $flow->setContext($context);
-            
-            $flow->run();
+//            $this->log('flow-in-foreach', [$flow]);
+            if($flow->handle()) {
+                break;
+            }
         }
     }
 }

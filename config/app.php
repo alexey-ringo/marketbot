@@ -177,6 +177,7 @@ return [
         App\Providers\RouteServiceProvider::class,
         
         App\Providers\SchemaIOServiceProvider::class,
+        App\Providers\ConversationServiceProvider::class,
 
     ],
 

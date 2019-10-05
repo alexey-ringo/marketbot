@@ -2,30 +2,31 @@
 
 namespace App\Conversation\Flows;
 
+use App\Conversation\Traits\HasTriggers;
+use App\Conversation\Traits\HasStates;
+use App\Conversation\Traits\SendMessages;
+
 class WelcomeFlow extends AbstractFlow
 {
-    protected $triggers = [
-        '/start',
-        'привет',
-    ];
+    use HasTriggers, HasStates, SendMessages;
     
-    protected $states = [
-        'first',    
-    ];
-    
-    protected function first()
+    public function __construct()
     {
-         \Log::debug('WelcomeFlow.first', [
-                'states' => $this->states,
-                'microtime' => microtime(true),
-            ]);
-            
-        $this->telegram()->sendMessage([
-            'chat_id' => $this->user->chat_id,
-            'text' => 'Добро пожаловать в наш магазин "' . config('app.name') . '"!',
-        ]);
+        //лучше хранить триггеры в БД!
+        $this
+            ->addTrigger('/start')
+            ->addTrigger('привет');
         
-        $state = 'first';
-        $this->jump(CategoryFlow::class, $state);
+        $this
+            ->addState('sayHello');
+    }
+    
+    protected function sayHello()
+    {
+        $this->log('sayHello');
+        
+        $this->reply('Добро пожаловать в наш магазин "' . config('app.name') . '"!');
+        
+        $this->runFlow(CategoryFlow::class);
     }
 }

@@ -18,12 +18,7 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
-        'App\Events\Conversation\onFlowRunned' => [
-            'App\Listeners\Conversation\SaveRunnedFlowToContext'
-        ],
-        'App\Events\Conversation\onOptionChanged' => [
-            'App\Listeners\Conversation\UpdateOptionInContext'
-        ],
+        
     ];
 
     /**

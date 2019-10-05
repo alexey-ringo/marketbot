@@ -4,76 +4,68 @@ namespace App\Conversation\Flows;
 
 use App\Services\CategoryService;
 use Schema\Record;
-use Telegram\Bot\Keyboard\Button;
-use Telegram\Bot\Keyboard\Keyboard;
+use App\Conversation\Traits\HasTriggers;
+use App\Conversation\Traits\HasStates;
+use App\Conversation\Traits\HasOptions;
+use App\Conversation\Traits\SendMessages;
 
 
 
 class CategoryFlow extends AbstractFlow
 {
-    protected $triggers = [];
+    use HasTriggers, HasStates, HasOptions, SendMessages;
+   
     
-    protected $states = [
-        'first',
-        'navigate',
-    ];
-    
-    protected $options  = [
-        'parent_id' => null,
-    ];
-    
-    protected function first()
+    public function __construct()
     {
-        $parentId = $this->options['parent_id'];
+        //Важен порядок!!!
+        $this
+            ->addState('showParent')
+            ->addState('showChildren');
+            
+        $this
+            ->addOption('parent_id');
+    }
+    
+    protected function showParent()
+    {
+        $parentId = $this->getOption('parent_id');
         
-        \Log::debug('CategoryFlow.first', [
-                'parent_id' => $parentId,
-                'microtime' => microtime(true),
-            ]);
+        $this->log('showParent', ['parent_id' => $parentId]);
         
         $buttons = [];
         
         foreach($this->categories() as $category) {
             if($category->offsetGet('parent_id') == $parentId) {
-                $buttons[] = [$category->offsetGet('name')];
+                $buttons[] = $category->offsetGet('name');
             }
         }
         
-        $this->telegram()->sendMessage([
-            'chat_id' => $this->user->chat_id,
-            'text' => 'Список категорий',
-            'reply_markup' => Keyboard::make([
-                'keyboard' => $buttons, 
-                'resize_keyboards' => true, 
-                'one_time_keyboard' => true
-            ]),
-        ]);
+        $this->log('showParent', ['buttons' => $buttons]);
+        
+        $this->reply('Список категорий', $buttons);
     }
     
-    protected function navigate()
+    protected function showChildren()
     {
+        $this->log('showChildren');
         /**
          * @var Record $record
          */
         $category = collect($this->categories())->first(function (Record $record) {
             return hash_equals($record->offsetGet('name'), $this->message->text);
         });
-        
-        \Log::debug('CategoryFlow.navigate', [
-                'category' => $category,
-                'microtime' => microtime(true),
-            ]);
             
         if(is_null($category)) {
             return;
         }
         
         $id = $category->offsetGet('id');
+        $this->log('showChildren.parent_id', ['id' => $id]);
         
-        $this->saveOption('parent_id', $id);  
+        $this->remember('parent_id', $id);
+        $this->runState('showParent');
         
-        $state = 'first';
-        $this->run($state, ['parent_id' => $id]);
     }
     
     /**
